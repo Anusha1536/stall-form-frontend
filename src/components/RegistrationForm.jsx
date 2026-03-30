@@ -76,7 +76,7 @@ function RegistrationForm() {
     };
 
     const res = await axios.post(
-      "http://localhost:5000/stalls/register",
+      "https://stall-form-backend-production.up.railway.app/stalls/register",
       body
     );
 
