@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import "./RegistrationForm.css";
+import FormPageLayout from "./form/FormPageLayout";
+import FormField from "./form/FormField";
 
 function RegistrationForm() {
   const [formData, setFormData] = useState({
@@ -127,128 +129,191 @@ function RegistrationForm() {
 };
 
   return (
-    <div className="form-container">
-      <h2>Registration Form</h2>
-
+    <FormPageLayout
+      title="Registration Form"
+      subtitle="Complete all required details to register your stall."
+    >
       <form onSubmit={handleSubmit}>
-
-        <div className="form-row">
-          <label>1. Participant's Name:</label>
+        <FormField
+          id="participantName"
+          label="1. Participant's Name:"
+          required
+          error={errors.participantName}
+        >
           <input
+            id="participantName"
             type="text"
-            name="participantName" 
+            name="participantName"
             value={formData.participantName}
             onChange={handleChange}
+            required
             className={errors.participantName ? "error-input" : ""}
-            />
+          />
+        </FormField>
 
-            {errors.participantName && (
-            <p className="error-text">{errors.participantName}</p>
-            )}
-        </div>
-
-        <div className="form-row">
-          <label>2. Teammate(s) Name:</label>
+        <FormField id="teammates" label="2. Teammate(s) Name:">
           {formData.teammates.map((mate, index) => (
             <input
               key={index}
+              id={`teammate-${index + 1}`}
               type="text"
               value={mate}
               onChange={(e) => handleTeammateChange(index, e.target.value)}
+              placeholder={`Teammate ${index + 1}`}
             />
           ))}
-        </div>
+        </FormField>
 
-        <div className="form-row">
-          <label>3. Class & Division:</label>
+        <FormField
+          id="classDivision"
+          label="3. Class & Division:"
+          required
+          error={errors.classDivision}
+        >
           <input
+            id="classDivision"
             type="text"
             name="classDivision"
             value={formData.classDivision}
             onChange={handleChange}
+            required
             className={errors.classDivision ? "error-input" : ""}
-            />
+          />
+        </FormField>
 
-            {errors.classDivision && (
-            <p className="error-text">{errors.classDivision}</p>
-            )}
-        </div>
-
-        <div className="form-row">
-          <label>4. Contact Number:</label>
+        <FormField
+          id="contactNumber"
+          label="4. Contact Number:"
+          required
+          error={errors.contactNumber}
+        >
           <input
+            id="contactNumber"
             type="text"
             name="contactNumber"
             value={formData.contactNumber}
             onChange={handleChange}
+            required
             className={errors.contactNumber ? "error-input" : ""}
-            />
+          />
+        </FormField>
 
-            {errors.contactNumber && (
-            <p className="error-text">{errors.contactNumber}</p>
-            )}
-        </div>
-
-        <div className="form-row">
-          <label>5. No. of Benches Required:</label>
+        <FormField
+          id="numberOfBenches"
+          label="5. No. of Benches Required:"
+          required
+          error={errors.numberOfBenches}
+        >
           <input
+            id="numberOfBenches"
             type="number"
             name="numberOfBenches"
             value={formData.numberOfBenches}
             onChange={handleChange}
+            required
             className={errors.numberOfBenches ? "error-input" : ""}
-            />
+          />
+        </FormField>
 
-            {errors.numberOfBenches && (
-            <p className="error-text">{errors.numberOfBenches}</p>
-            )}
-        </div>
-
-        <div className="form-row">
-          <label>6. Category (Tick one):</label>
-
-          <div className="checkbox-group">
-            <label><input type="radio" name="category" value="Food & Beverage" onChange={handleChange}/> Food & Beverage</label>
-            <label><input type="radio" name="category" value="Games" onChange={handleChange}/> Games</label>
-            <label><input type="radio" name="category" value="Talent Service" onChange={handleChange}/> Talent Service</label>
-            <label><input type="radio" name="category" value="Product Sale" onChange={handleChange}/> Product Sale</label>
-            <label><input type="radio" name="category" value="Others" onChange={handleChange}/> Others</label>
+        <FormField
+          id="category"
+          label="6. Category (Tick one):"
+          required
+          error={errors.category}
+        >
+          <div className="checkbox-group" role="radiogroup" aria-label="Stall category">
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="Food & Beverage"
+                checked={formData.category === "Food & Beverage"}
+                onChange={handleChange}
+                required
+              />
+              Food & Beverage
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="Games"
+                checked={formData.category === "Games"}
+                onChange={handleChange}
+                required
+              />
+              Games
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="Talent Service"
+                checked={formData.category === "Talent Service"}
+                onChange={handleChange}
+                required
+              />
+              Talent Service
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="Product Sale"
+                checked={formData.category === "Product Sale"}
+                onChange={handleChange}
+                required
+              />
+              Product Sale
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="Others"
+                checked={formData.category === "Others"}
+                onChange={handleChange}
+                required
+              />
+              Others
+            </label>
           </div>
-        </div>
+        </FormField>
 
-        <div className="form-row">
-          <label>
-            7. Description of Stall (Briefly explain what you will sell/do):
-          </label>
+        <FormField
+          id="stallDescription"
+          label="7. Description of Stall (Briefly explain what you will sell/do):"
+          required
+          error={errors.stallDescription}
+        >
           <textarea
+            id="stallDescription"
             name="stallDescription"
             value={formData.stallDescription}
             onChange={handleChange}
+            required
             className={errors.stallDescription ? "error-input" : ""}
-            />
+          />
+        </FormField>
 
-            {errors.stallDescription && (
-            <p className="error-text">{errors.stallDescription}</p>
-            )}
-        </div>
+        <FormField id="facultyApproval" label="8. Faculty Approval:">
+          <input
+            id="facultyApproval"
+            type="text"
+            name="facultyApproval"
+            value={formData.facultyApproval}
+            onChange={handleChange}
+          />
+        </FormField>
 
-        <div className="form-row">
-          <label>8. Faculty Approval:</label>
-          <input type="text" name="facultyApproval" onChange={handleChange} />
-        </div>
-
-        <div className="form-row">
-          <label>9. Last date of submission: 28 / 02 / 2026</label>
-        </div>
-
-        <div className="form-row">
-          <label>10. Date of submission: 25 / 02 / 2026</label>
+        <div className="form-row form-meta-row">
+          <p>9. Last date of submission: 28 / 02 / 2026</p>
+          <p>10. Date of submission: 25 / 02 / 2026</p>
         </div>
 
         <button type="submit">Submit</button>
-
       </form>
-    </div>
+    </FormPageLayout>
   );
 }
 
