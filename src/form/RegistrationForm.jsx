@@ -1,8 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import "./RegistrationForm.css";
-import FormPageLayout from "./form/FormPageLayout";
-import FormField from "./form/FormField";
+import FormPageLayout from "./components/FormPageLayout";
+import FormField from "./components/FormField";
 
 function RegistrationForm() {
   const [formData, setFormData] = useState({
