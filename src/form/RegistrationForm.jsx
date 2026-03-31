@@ -19,11 +19,81 @@ function RegistrationForm() {
 
   const [errors, setErrors] = useState({});
 
+  const mapBackendErrors = (payload) => {
+    if (!payload || typeof payload !== "object") return {};
+
+    const mappedErrors = {};
+
+    if (Array.isArray(payload.errors)) {
+      payload.errors.forEach((item) => {
+        if (!item || typeof item !== "object") return;
+
+        const fieldKey = item.path || item.field || item.param;
+        const message = item.msg || item.message;
+
+        if (fieldKey && message && !mappedErrors[fieldKey]) {
+          mappedErrors[fieldKey] = message;
+        }
+      });
+    }
+
+    if (payload.error && typeof payload.error === "object") {
+      Object.entries(payload.error).forEach(([key, value]) => {
+        if (typeof value === "string") {
+          mappedErrors[key] = value;
+        }
+      });
+    }
+
+    return mappedErrors;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.participantName.trim()) {
+      newErrors.participantName = "Participant name is required";
+    }
+
+    if (!formData.classDivision.trim()) {
+      newErrors.classDivision = "Class / Division is required";
+    }
+
+    const cleanedContact = formData.contactNumber.replace(/\D/g, "");
+    if (!cleanedContact) {
+      newErrors.contactNumber = "Contact number is required";
+    } else if (!/^\d{10}$/.test(cleanedContact)) {
+      newErrors.contactNumber = "Contact number must be 10 digits";
+    }
+
+    if (!formData.numberOfBenches) {
+      newErrors.numberOfBenches = "Number of benches is required";
+    } else if (Number(formData.numberOfBenches) <= 0) {
+      newErrors.numberOfBenches = "Number of benches must be greater than 0";
+    }
+
+    if (!formData.category) {
+      newErrors.category = "Select at least one category";
+    }
+
+    if (!formData.stallDescription.trim()) {
+      newErrors.stallDescription = "Stall description is required";
+    }
+
+    if (!formData.facultyApproval.trim()) {
+      newErrors.facultyApproval = "Faculty approval is required";
+    }
+
+    return newErrors;
+  };
+
   const handleChange = (e) => {
-    // console.log(`event trigered from ${e.target.name}`);
-    // console.log(`event trigered value ${e.target.value}`);
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    // console.log("form data",JSON.stringify(formData,null,2));
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
   const handleTeammateChange = (index, value) => {
@@ -33,100 +103,68 @@ function RegistrationForm() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  let newErrors = {};
+    const newErrors = validateForm();
+    setErrors(newErrors);
 
-  if (!formData.participantName.trim()) {
-    newErrors.participantName = "Participant name is required";
-  }
-
-  if (!formData.classDivision.trim()) {
-    newErrors.classDivision = "Class / Division is required";
-  }
-
-  if (!formData.contactNumber.trim()) {
-    newErrors.contactNumber = "Contact number is required";
-  }
-
-  if (!formData.numberOfBenches) {
-    newErrors.numberOfBenches = "Number of benches is required";
-  }
-
-  if (!formData.category) {
-    newErrors.category = "Select at least one category";
-  }
-
-  if (!formData.stallDescription.trim()) {
-    newErrors.stallDescription = "Stall description is required";
-  }
-
-  setErrors(newErrors);
-
-  if (Object.keys(newErrors).length !== 0) return;
-
-  try {
-    const body = {
-      participantName: formData.participantName,
-      teammates: formData.teammates,
-      classDivision: formData.classDivision,
-      contactNumber: formData.contactNumber,
-      numberOfBenches: formData.numberOfBenches,
-      category: formData.category,
-      stallDescription: formData.stallDescription,
-      facultyApproval: formData.facultyApproval
-    };
-
-    const res = await axios.post(
-      "https://stall-form-backend-production.up.railway.app/stalls/register",
-      body
-    );
-
-    // SUCCESS CASE
-    if (res.status === 201 || res.status === 200) {
-      alert("Form submitted successfully ");
-      console.log("Response:", res.data);
+    if (Object.keys(newErrors).length !== 0) {
+      alert("Please correct the highlighted fields and submit again.");
+      return;
     }
 
-  } catch (error) {
+    try {
+      const body = {
+        participantName: formData.participantName,
+        teammates: formData.teammates,
+        classDivision: formData.classDivision,
+        contactNumber: formData.contactNumber,
+        numberOfBenches: formData.numberOfBenches,
+        category: formData.category,
+        stallDescription: formData.stallDescription,
+        facultyApproval: formData.facultyApproval,
+      };
 
-    // SERVER RESPONDED WITH ERROR (4xx / 5xx)
-    if (error.response) {
+      const res = await axios.post(
+        "https://stall-form-backend-production.up.railway.app/stalls/register",
+        body
+      );
 
-      console.error("Server Error:", error.response);
-
-      if (error.response.status === 400) {
-        alert("Bad request. Please check form data.");
+      if (res.status === 201 || res.status === 200) {
+        alert("Form submitted successfully.");
       }
+    } catch (error) {
+      if (error.response) {
+        console.error("Server Error:", error.response);
 
-      else if (error.response.status === 404) {
-        alert("API route not found.");
+        if (error.response.status === 400) {
+          const backendErrors = mapBackendErrors(error.response.data);
+
+          if (Object.keys(backendErrors).length > 0) {
+            setErrors((prev) => ({ ...prev, ...backendErrors }));
+            alert("Some fields are invalid. Please review and submit again.");
+          } else {
+            alert(
+              error.response.data?.message ||
+                "Invalid form data. Please review your entries."
+            );
+          }
+        } else if (error.response.status === 404) {
+          alert("Submission endpoint not found.");
+        } else if (error.response.status >= 500) {
+          alert("Server error. Please try again later.");
+        } else {
+          alert(error.response.data?.message || "Unable to submit form.");
+        }
+      } else if (error.request) {
+        console.error("No response:", error.request);
+        alert("Server not responding. Please check your connection and try again.");
+      } else {
+        console.error("Axios Error:", error.message);
+        alert("Something went wrong.");
       }
-
-      else if (error.response.status === 500) {
-        alert("Server error. Please try again later.");
-      }
-
-      else {
-        alert(`Error: ${error.response.data.message}`);
-      }
-
     }
-
-    // NO RESPONSE FROM SERVER
-    else if (error.request) {
-      console.error("No response:", error.request);
-      alert("Server not responding. Check backend connection.");
-    }
-
-    // REQUEST SETUP ERROR
-    else {
-      console.error("Axios Error:", error.message);
-      alert("Something went wrong.");
-    }
-
-  }
-};
+  };
 
   return (
     <FormPageLayout
@@ -296,13 +334,20 @@ function RegistrationForm() {
           />
         </FormField>
 
-        <FormField id="facultyApproval" label="8. Faculty Approval:">
+        <FormField
+          id="facultyApproval"
+          label="8. Faculty Approval:"
+          required
+          error={errors.facultyApproval}
+        >
           <input
             id="facultyApproval"
             type="text"
             name="facultyApproval"
             value={formData.facultyApproval}
             onChange={handleChange}
+            required
+            className={errors.facultyApproval ? "error-input" : ""}
           />
         </FormField>
 

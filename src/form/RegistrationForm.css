@@ -153,6 +153,26 @@ button:hover {
   margin-top: 4px;
 }
 
+.submit-message {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.submit-message-error {
+  color: #7e1f19;
+  border: 1px solid #e6b2ae;
+  background-color: #fff2f1;
+}
+
+.submit-message-success {
+  color: #1f5f34;
+  border: 1px solid #aed8b8;
+  background-color: #edf9f0;
+}
+
 @media (max-width: 720px) {
   .form-page {
     padding: 28px 12px;
